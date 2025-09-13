@@ -4,8 +4,6 @@ import Header from './components/Header';
 import BalanceDisplay from './components/BalanceDisplay';
 import AdPlayer from './components/AdPlayer';
 import Boosters from './components/Boosters';
-import SettingsModal from './components/SettingsModal';
-import { initializeAiClient } from './services/geminiService';
 
 const BOOSTERS_CONFIG = {
   '2x': {
@@ -15,8 +13,6 @@ const BOOSTERS_CONFIG = {
   }
 };
 
-const API_KEY_STORAGE_KEY = 'gemini_api_key';
-
 const App: React.FC = () => {
   const [userBalance, setUserBalance] = useState<number>(0);
   const [ownerBalance, setOwnerBalance] = useState<number>(0);
@@ -25,25 +21,6 @@ const App: React.FC = () => {
 
   const [activeBooster, setActiveBooster] = useState<string | null>(null);
   const [boosterEndTime, setBoosterEndTime] = useState<number | null>(null);
-
-  const [apiKey, setApiKey] = useState<string | null>(null);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-
-  // Load API key from local storage on initial mount and initialize client
-  useEffect(() => {
-    const storedApiKey = localStorage.getItem(API_KEY_STORAGE_KEY);
-    if (storedApiKey) {
-      setApiKey(storedApiKey);
-      initializeAiClient(storedApiKey);
-    }
-  }, []);
-
-  const handleSaveApiKey = (newApiKey: string) => {
-    const trimmedKey = newApiKey.trim();
-    setApiKey(trimmedKey);
-    localStorage.setItem(API_KEY_STORAGE_KEY, trimmedKey);
-    initializeAiClient(trimmedKey);
-  };
 
   // Effect to clear booster when time runs out
   useEffect(() => {
@@ -93,7 +70,7 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black flex flex-col items-center justify-between p-4 font-sans max-w-md mx-auto relative overflow-hidden">
-      <Header onOpenSettings={() => setIsSettingsOpen(true)} />
+      <Header />
       <main className="w-full flex-grow flex flex-col items-center justify-center space-y-8 px-4">
         <BalanceDisplay userBalance={userBalance} ownerBalance={ownerBalance} />
         <AdPlayer onAdWatched={handleAdWatched} />
@@ -112,14 +89,6 @@ const App: React.FC = () => {
           +{rewardAmount} Դ
         </div>
       )}
-
-      <SettingsModal 
-        isOpen={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
-        onSave={handleSaveApiKey}
-        currentApiKey={apiKey}
-      />
-
       <style>
         {`
           @keyframes reward-float {

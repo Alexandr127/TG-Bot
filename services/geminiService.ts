@@ -1,41 +1,37 @@
+
 import { GoogleGenAI } from "@google/genai";
 
-// Keep a single instance of the client, initialized lazily.
+// Keep a single instance of the client.
 let ai: GoogleGenAI | null = null;
 
 /**
- * Gets or creates the GoogleGenAI client instance.
- * Returns null if the API key is not available.
+ * Initializes the GoogleGenAI client with a user-provided API key.
+ * @param apiKey The API key to use for initialization.
  */
-const getAiClient = (): GoogleGenAI | null => {
-  // Return the cached client if it exists
-  if (ai) {
-    return ai;
+export const initializeAiClient = (apiKey: string): void => {
+  if (!apiKey) {
+    console.warn("Attempted to initialize AI client with an empty API key.");
+    ai = null; // Reset if key is invalid
+    return;
   }
-
-  const API_KEY = process.env.API_KEY;
-
-  // If the API key is not set, warn the developer and return null.
-  if (!API_KEY) {
-    console.warn("API_KEY environment variable not set. Gemini API functionality will be disabled.");
-    return null;
-  }
-
   // Create and cache the client instance
-  ai = new GoogleGenAI({ apiKey: API_KEY });
-  return ai;
+  try {
+    ai = new GoogleGenAI({ apiKey });
+    console.log("Gemini AI Client initialized successfully.");
+  } catch(error) {
+    console.error("Failed to initialize Gemini AI Client:", error);
+    ai = null;
+  }
 };
 
 export async function getFunFact(): Promise<string> {
-  const aiClient = getAiClient();
-  
-  // If the client could not be initialized (due to missing API key), return a helpful message.
-  if (!aiClient) {
-    return "Did you know? The API key is missing, so we can't fetch live facts right now!";
+  // If the client has not been initialized, return a helpful message.
+  if (!ai) {
+    return "Did you know? The Gemini API key is missing. Please add it in the settings to get fun facts!";
   }
 
   try {
-    const response = await aiClient.models.generateContent({
+    const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: "Tell me a very short, interesting, and fun fact that is easy to understand.",
        config: {
@@ -51,6 +47,10 @@ export async function getFunFact(): Promise<string> {
     return text.trim();
   } catch (error) {
     console.error("Error fetching fun fact from Gemini API:", error);
+    // Provide a more specific error if it's an authentication issue
+    if (error instanceof Error && error.message.includes('API key not valid')) {
+       return "The provided API key is not valid. Please check it in the settings.";
+    }
     return "Could not fetch a fun fact at the moment. Please try again later.";
   }
 }
