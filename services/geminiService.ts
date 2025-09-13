@@ -1,8 +1,8 @@
 import { GoogleGenAI } from "@google/genai";
 
-// Access the API key from environment variables.
-// This assumes the hosting environment (like Vercel) has this variable set.
-const API_KEY = process.env.API_KEY;
+// Safely access the API key from environment variables.
+// This prevents a crash in browser environments where `process` is not defined.
+const API_KEY = (typeof process !== 'undefined' && process.env) ? process.env.API_KEY : undefined;
 
 let ai: GoogleGenAI | null = null;
 
