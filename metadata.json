@@ -1,0 +1,5 @@
+{
+  "name": "TG Game",
+  "description": "A Telegram-style mini-game where users watch simulated ads to earn virtual currency. A portion of the earnings is shared with the user.",
+  "requestFramePermissions": []
+}
