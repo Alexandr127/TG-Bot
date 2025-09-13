@@ -1,10 +1,11 @@
 import { GoogleGenAI } from "@google/genai";
 
-// Safely access the API key from environment variables.
-// This prevents a crash in browser environments where `process` is not defined.
+// This is a browser-based application. It's assumed that the build environment 
+// (like Vercel) will replace `process.env.API_KEY` with the actual secret.
+// If `process` is not defined, it means the variable was not injected.
 const API_KEY = (typeof process !== 'undefined' && process.env) ? process.env.API_KEY : undefined;
 
-let ai: GoogleGenAI | null = null;
+let ai: GoogleGenAI | null;
 
 if (API_KEY) {
   try {
@@ -14,14 +15,14 @@ if (API_KEY) {
     ai = null;
   }
 } else {
-  console.warn("Gemini API key is not available in environment variables.");
+  console.warn("Gemini API key is not available. The site owner needs to set the API_KEY environment variable in their deployment settings.");
+  ai = null;
 }
 
 
 export async function getFunFact(): Promise<string> {
-  // If the client has not been initialized, return a helpful message.
   if (!ai) {
-    return "Did you know? The Gemini API key is not configured. The site owner needs to set it up in the Vercel environment variables.";
+    return "The Gemini API client is not initialized. The site owner needs to configure the API_KEY in the deployment environment.";
   }
 
   try {
@@ -41,9 +42,8 @@ export async function getFunFact(): Promise<string> {
     return text.trim();
   } catch (error) {
     console.error("Error fetching fun fact from Gemini API:", error);
-    // Provide a more specific error if it's an authentication issue
     if (error instanceof Error && error.message.includes('API key not valid')) {
-       return "The API key configured on the server is invalid.";
+       return "The provided API key is invalid. The site owner needs to check their configuration.";
     }
     return "Could not fetch a fun fact at the moment. Please try again later.";
   }
